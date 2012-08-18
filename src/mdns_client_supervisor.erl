@@ -12,7 +12,7 @@
 %% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
--module(mdns_supervisor).
+-module(mdns_client_supervisor).
 -behaviour(supervisor).
 
 %% API
@@ -45,14 +45,10 @@ init(Parameters) ->
 
 children(Parameters) ->
     [node_discovery_server_spec(Parameters),
-     node_discovery_responder_spec(),
-     node_discovery_spec(Parameters)].
+     node_discovery_responder_spec()].
 
 node_discovery_server_spec(Parameters) ->
     ?CHILD(mdns_node_discovery_server, worker, Parameters).
-
-node_discovery_spec(Parameters) ->
-    ?CHILD(mdns_node_discovery, worker, Parameters).
 
 node_discovery_responder_spec() ->
     {mdns_node_discovery_responder, {
@@ -64,5 +60,3 @@ node_discovery_responder_spec() ->
      5000,
      worker,
      []}.
-
-

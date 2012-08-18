@@ -12,23 +12,24 @@
 %% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
--module(mdns_application).
--behaviour(application).
+-module(mdns_client).
+-export([start/0,
+	 name/0,
+	 stop/0,
+	 discovered/0,
+	 make/0]).
 
-%% Application callbacks
--export([start/2,
-	 stop/1]).
+name() ->
+    ?MODULE.
 
-%% ===================================================================
-%% Application callbacks
-%% ===================================================================
+start() ->
+    application:start(?MODULE).
 
-start(_StartType, _StartArgs) ->
-    {ok, _} = S = mdns_supervisor:start_link([application:get_all_env()]),
-    ok = mdns_node_discovery_event:add_handler(mdns_discovery_connect_node_handler),
-    S.
-    
+stop() ->
+    gen_server:call(name(), stop).
 
+discovered() ->
+    gen_server:call(name(), discovered).
 
-stop(_State) ->
-    ok.
+make() ->
+    make:all([load]).

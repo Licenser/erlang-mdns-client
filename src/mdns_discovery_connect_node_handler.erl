@@ -18,15 +18,26 @@
 -export([init/1,
 	 terminate/2,
 	 handle_info/2,
-	 handle_event/2]).
+	 handle_event/2,
+	 handle_cast/2,
+	 handle_call/2,
+	 code_change/3]).
 
 init(_) ->
     {ok, stateless}.
+
+
+handle_call(_, State) ->
+    {ok, State}.
+
+handle_cast(_, State) ->
+    {ok, State}.
 
 terminate(remove_handler, _) ->
     ok;
 terminate(stop, _) ->
     ok;
+
 terminate(Error, State) ->
     error_logger:error_report([{module, ?MODULE},
 			       {self, self()},
@@ -41,3 +52,5 @@ handle_info({'EXIT', _, shutdown}, _) ->
     remove_handler.
 
 
+code_change(_,_, State) ->
+    {ok, State}.
