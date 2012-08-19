@@ -16,7 +16,8 @@
 -export([add_handler/1,
 	 add_handler/2,
 	 manager/0,
-	 notify_node_advertisement/1]).
+	 notify_service_add/3,
+	 notify_service_remove/2]).
 
 
 manager() ->
@@ -28,8 +29,12 @@ add_handler(Handler) ->
 add_handler(Handler, Args) ->
     gen_event:add_handler(manager(), Handler, Args).
 
-notify_node_advertisement(Node) ->
-    notify(manager(), {node_advertisement, Node}).
+notify_service_add(Type, Host, Options) ->
+    notify(manager(), {service_add, Type, Host, Options}).
+
+notify_service_remove(Type, Host) ->
+    notify(manager(), {service_remove, Type, Host}).
+
 
 notify(Manager, Message) ->
     gen_event:notify(Manager, Message).

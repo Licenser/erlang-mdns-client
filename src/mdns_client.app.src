@@ -14,19 +14,16 @@
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 %%
 {application, mdns_client,
- [
-  {description, "mDNS Erlang Node Discovery"},
+ [{description, "mDNS Erlang Node Discovery"},
   {vsn, "0.1"},
   {registered, []},
-  {applications, [
-                  kernel,
+  {applications, [kernel,
                   stdlib
                  ]},
   {mod, { mdns_client_application, []}},
-  {env, [
-	 {port, 5353},
+  {env, [{port, 5353},
 	 {address, {224, 0, 0, 251}},
 	 {domain, ".local"},
-	 {type, "_erlang._tcp"}
-	]}
+	 {type, "_erlang._tcp"},
+	 {types, ["_erlang._tcp"]}]}
  ]}.

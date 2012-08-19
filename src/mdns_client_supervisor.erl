@@ -45,7 +45,8 @@ init(Parameters) ->
 
 children(Parameters) ->
     [node_discovery_server_spec(Parameters),
-     node_discovery_responder_spec()].
+     node_discovery_responder_spec()
+    ].
 
 node_discovery_server_spec(Parameters) ->
     ?CHILD(mdns_node_discovery_server, worker, Parameters).

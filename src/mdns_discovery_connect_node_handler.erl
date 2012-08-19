@@ -44,8 +44,7 @@ terminate(Error, State) ->
 			       {error, Error},
 			       {state, State}]).
 
-handle_event({node_advertisement, Node}, State) ->
-    true = net_kernel:connect_node(Node),
+handle_event({node_advertisement, _Type, _Host, _Options}, State) ->
     {ok, State}.
 
 handle_info({'EXIT', _, shutdown}, _) ->

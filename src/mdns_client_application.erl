@@ -24,9 +24,8 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    {ok, _} = S = mdns_supervisor:start_link([application:get_all_env()]),
-    ok = mdns_node_discovery_event:add_handler(mdns_discovery_connect_node_handler),
-    S.
+    {ok, _} = S = mdns_client_supervisor:start_link([application:get_all_env()]),
+     S.
     
 
 
