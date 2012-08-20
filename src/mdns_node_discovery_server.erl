@@ -32,8 +32,6 @@
 	 handle_cast/2,
 	 handle_info/2,
          terminate/2,
-	 add_type/1,
-	 types/0,
 	 code_change/3]).
 
 %% ------------------------------------------------------------------
@@ -41,11 +39,6 @@
 %% ------------------------------------------------------------------
 
 
-add_type(Type) ->
-    gen_server:cast({local, mdns_client:name()}, {add_type, Type}).
-
-types() ->
-    gen_server:call({local, mdns_client:name()}, types).
 
 start_link() ->
     start_link([]).
@@ -62,8 +55,7 @@ start_link(Parameters) ->
 		address,
 		domain,
 		port,
-		type,
-		types,
+		types = [],
 		discovered}).
 
 init(Parameters) ->
@@ -76,11 +68,8 @@ init([{domain, Domain} | T], State) ->
     init(T, State#state{domain = Domain});
 init([{port, Port} | T], State) ->
     init(T, State#state{port = Port});
-init([{type, Type} | T], State) ->
-    init(T, State#state{type = Type});
 init([{types, Types} | T], State) ->
     init(T, State#state{types = Types});
-
 init([_ | T], State) ->
     init(T, State);
 init([], #state{address = Address, port = Port} = State) ->

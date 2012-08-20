@@ -18,6 +18,8 @@
 	 stop/0,
 	 discovered/0,
 	 discovered/1,
+	 add_type/1,
+	 types/0,
 	 make/0]).
 
 name() ->
@@ -34,6 +36,13 @@ discovered() ->
 
 discovered(Type) ->
     gen_server:call(name(), {discovered, Type}).
+
+
+add_type(Type) ->
+    gen_server:cast(name(), {add_type, Type}).
+
+types() ->
+    gen_server:call(name(), types).
 
 
 make() ->
