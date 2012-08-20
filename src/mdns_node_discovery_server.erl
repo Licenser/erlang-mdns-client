@@ -33,6 +33,7 @@
 	 handle_info/2,
          terminate/2,
 	 add_type/1,
+	 types/0,
 	 code_change/3]).
 
 %% ------------------------------------------------------------------
@@ -42,6 +43,9 @@
 
 add_type(Type) ->
     gen_server:cast({local, mdns_client:name()}, {add_type, Type}).
+
+types() ->
+    gen_server:call({local, mdns_client:name()}, types).
 
 start_link() ->
     start_link([]).
@@ -104,6 +108,10 @@ handle_call({discovered, Type}, _, #state{discovered = Discovered} = State) ->
 	  end,
     {reply, Res, State};
 
+
+
+handle_call(types, _, #state{types = Types} =State) ->
+    {reply, {ok, Types}, State};
 
 handle_call(stop, _, State) ->
     {stop, normal, State}.
