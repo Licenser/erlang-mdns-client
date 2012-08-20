@@ -17,7 +17,7 @@
 	 add_handler/2,
 	 manager/0,
 	 notify_service_add/3,
-	 notify_service_remove/2]).
+	 notify_service_remove/3]).
 
 
 manager() ->
@@ -32,8 +32,8 @@ add_handler(Handler, Args) ->
 notify_service_add(Type, Host, Options) ->
     notify(manager(), {service_add, Type, Host, Options}).
 
-notify_service_remove(Type, Host) ->
-    notify(manager(), {service_remove, Type, Host}).
+notify_service_remove(Type, Host, Options) ->
+    notify(manager(), {service_remove, Type, Host, Options}).
 
 
 notify(Manager, Message) ->

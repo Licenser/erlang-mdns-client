@@ -125,7 +125,7 @@ handle_info(tick, #state{discovered=Discovered} = State) ->
 		      fun({Host, Options, TTL}, L) ->
 			      case TTL - 1 of
 				  TTL1 when TTL1 =< 0 ->
-				      mdns_node_discovery_event:notify_service_remove(Type, Host),
+				      mdns_node_discovery_event:notify_service_remove(Type, Host, Options),
 				      L;
 				  TTL1 ->
 				      [{Host, Options, TTL1}|L]
@@ -222,6 +222,7 @@ handle_advertisement([Answer | Answers], Resources, #state{%discovered = Discove
 	    [Type, <<>>] = re:split(TypeDomain, Domain),
 	    {srv, {_,_,_,
 		   Host}} = lists:keyfind(srv, 1, Res),
+	    Options = parse_txt(Txt),
 	    case ttl(Answer) of
 		0 -> % Remove request
 		    Discovered1 = 
@@ -230,10 +231,9 @@ handle_advertisement([Answer | Answers], Resources, #state{%discovered = Discove
 			  fun(Hosts) ->
 				  lists:keydelete(Host, 1, Hosts)
 			  end, [], Discovered),
-		    mdns_node_discovery_event:notify_service_remove(Type, Host),
+		    mdns_node_discovery_event:notify_service_remove(Type, Host, Options),
 		    handle_advertisement(Answers, Resources, State#state{discovered=Discovered1});
 		TTL -> % Add request
-		    Options = parse_txt(Txt),
 		    Discovered1 = 
 			dict:update(
 			  Type, 
