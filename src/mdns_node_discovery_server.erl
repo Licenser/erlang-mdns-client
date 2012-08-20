@@ -32,14 +32,20 @@
 	 handle_cast/2,
 	 handle_info/2,
          terminate/2,
+	 add_type/1,
 	 code_change/3]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
+
+add_type(Type) ->
+    gen_server:cast({local, mdns_client:name()}, {add_type, Type}).
+
 start_link() ->
     start_link([]).
+
 
 start_link(Parameters) ->
     gen_server:start_link({local, mdns_client:name()}, ?MODULE, Parameters, []).
@@ -102,6 +108,9 @@ handle_call({discovered, Type}, _, #state{discovered = Discovered} = State) ->
 handle_call(stop, _, State) ->
     {stop, normal, State}.
 
+handle_cast({add_type, Type}, #state{types = Types} = State) ->
+    {noreply, State#state{types = [Type | Types]}};
+    
 handle_cast(_, State) ->
     {noreply, State}.
 
