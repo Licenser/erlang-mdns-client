@@ -38,11 +38,8 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
-
-
 start_link() ->
     start_link([]).
-
 
 start_link(Parameters) ->
     gen_server:start_link({local, mdns_client:name()}, ?MODULE, Parameters, []).
@@ -96,8 +93,6 @@ handle_call({discovered, Type}, _, #state{discovered = Discovered} = State) ->
 		  [{Host,  Options} || {Host,  Options, _} <- Hosts]
 	  end,
     {reply, Res, State};
-
-
 
 handle_call(types, _, #state{types = Types} =State) ->
     {reply, {ok, Types}, State};
