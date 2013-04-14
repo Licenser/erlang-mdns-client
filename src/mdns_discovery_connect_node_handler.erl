@@ -28,7 +28,7 @@ init(_) ->
 
 
 handle_call(_, State) ->
-    {ok, State}.
+    {ok, ok, State}.
 
 handle_cast(_, State) ->
     {ok, State}.
