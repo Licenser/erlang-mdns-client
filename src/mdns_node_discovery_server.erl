@@ -52,6 +52,7 @@ start_link(Parameters) ->
                 address,
                 domain,
                 port,
+                interface = {0,0,0,0},
                 types = [],
                 discovered}).
 
@@ -61,6 +62,8 @@ init(Parameters) ->
 
 init([{address, Address} | T], State) ->
     init(T, State#state{address = Address});
+init([{interface, IFace} | T], State) ->
+    init(T, State#state{interface = IFace});
 init([{domain, Domain} | T], State) ->
     init(T, State#state{domain = Domain});
 init([{port, Port} | T], State) ->
@@ -69,14 +72,14 @@ init([{types, Types} | T], State) ->
     init(T, State#state{types = Types});
 init([_ | T], State) ->
     init(T, State);
-init([], #state{address = Address, port = Port} = State) ->
+init([], #state{address = Address, port = Port, interface = IFace} = State) ->
     {ok, Socket} = gen_udp:open(Port, [{mode, binary},
                                        {reuseaddr, true},
                                        {ip, Address},
                                        {multicast_ttl, 4},
                                        {multicast_loop, true},
                                        {broadcast, true},
-                                       {add_membership, {Address, {0, 0, 0, 0}}},
+                                       {add_membership, {Address, IFace}},
                                        {active, once}]),
     ok = net_kernel:monitor_nodes(true),
     timer:send_interval(1000, tick),

@@ -17,7 +17,7 @@
 
 %% API
 -export([start_link/0,
-	 start_link/1]).
+         start_link/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -40,8 +40,8 @@ start_link(Parameters) ->
 %% ===================================================================
 
 init(Parameters) ->
-    {ok, {{one_for_one, 5, 10}, 
-	  [?CHILD(mdns_node_discovery_server, worker, Parameters),
-	   {mdns_node_discovery_responder, 
-	    {gen_event, start_link, [{local, mdns_node_discovery_event:manager()}]},
-	    permanent, 5000, worker, []}]}}.
+    {ok, {{one_for_one, 5, 10},
+          [?CHILD(mdns_node_discovery_server, worker, Parameters),
+           {mdns_node_discovery_responder,
+            {gen_event, start_link, [{local, mdns_node_discovery_event:manager()}]},
+            permanent, 5000, worker, []}]}}.

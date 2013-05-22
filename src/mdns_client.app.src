@@ -22,8 +22,9 @@
                  ]},
   {mod, { mdns_client_application, []}},
   {env, [{port, 5353},
-	 {address, {224, 0, 0, 251}},
-	 {domain, ".local"},
-	 {type, "_erlang._tcp"},
-	 {types, ["_erlang._tcp"]}]}
+         {interface, {0,0,0,0}},
+         {address, {224, 0, 0, 251}},
+         {domain, ".local"},
+         {type, "_erlang._tcp"},
+         {types, ["_erlang._tcp"]}]}
  ]}.

@@ -17,7 +17,7 @@
 
 %% Application callbacks
 -export([start/2,
-	 stop/1]).
+         stop/1]).
 
 %% ===================================================================
 %% Application callbacks
@@ -25,8 +25,7 @@
 
 start(_StartType, _StartArgs) ->
     {ok, _} = S = mdns_client_supervisor:start_link([application:get_all_env()]),
-     S.
-    
+    S.
 
 
 stop(_State) ->
