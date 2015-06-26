@@ -81,7 +81,6 @@ init([], #state{address = Address, port = Port, interface = IFace} = State) ->
                                        {broadcast, true},
                                        {add_membership, {Address, IFace}},
                                        {active, once}]),
-    ok = net_kernel:monitor_nodes(true),
     timer:send_interval(1000, tick),
     {ok, State#state{socket = Socket}}.
 
@@ -104,11 +103,33 @@ handle_call(stop, _, State) ->
     {stop, normal, State}.
 
 handle_cast({add_type, Type}, #state{types = Types} = State) ->
+    query_service(Type, State),
     {noreply, State#state{types = [Type | Types]}};
 
 handle_cast(_, State) ->
     {noreply, State}.
 
+
+query_service(Service, #state{domain = Domain, socket = Socket,
+                              address = Address, port = Port}) ->
+    H = inet_dns:make_header([{id,0},
+                              {qr,true},
+                              {opcode,'query'},
+                              {aa,true},
+                              {tc,false},
+                              {rd,false},
+                              {ra,false},
+                              {pr,false},
+                              {rcode,0}]),
+    Qs = [inet_dns:make_dns_query([{domain, Service ++ Domain},
+                                   {class, in},
+                                   {type, ptr}])],
+    Message = inet_dns:make_msg([{header, H},
+                                 {qdlist, Qs}]),
+    gen_udp:send(Socket,
+                 Address,
+                 Port,
+                 inet_dns:encode(Message)).
 
 handle_info({nodeup, _}, State) ->
     {noreply, State};
@@ -133,13 +154,13 @@ handle_info(tick, #state{discovered=Discovered} = State) ->
           end, dict:new(), Discovered),
     {noreply, State#state{discovered=Discovered1}};
 
-handle_info({nodedown, Node}, #state{discovered = Discovered} = State) ->
-    {noreply, State#state{discovered = dict:erase(Node, Discovered)}};
+
 handle_info({udp, Socket, _, _, Packet}, S1) ->
     {ok, Record} = inet_dns:decode(Packet),
     Header = inet_dns:header(inet_dns:msg(Record, header)),
     Type = inet_dns:record_type(Record),
-    Questions = [inet_dns:dns_query(Query) || Query <- inet_dns:msg(Record, qdlist)],
+    Questions = [inet_dns:dns_query(Query) ||
+                    Query <- inet_dns:msg(Record, qdlist)],
     Answers = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, anlist)],
     Authorities = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, nslist)],
     Resources = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, arlist)],
@@ -156,7 +177,6 @@ handle_info({udp, Socket, _, _, Packet}, S1) ->
     {noreply, S2}.
 
 terminate(_Reason, #state{socket = Socket}) ->
-    net_kernel:monitor_nodes(false),
     gen_udp:close(Socket).
 
 code_change(_OldVsn, State, _Extra) ->
@@ -168,49 +188,20 @@ code_change(_OldVsn, State, _Extra) ->
 
 handle_record(_, msg, false, 'query', [_Question], [], [], [], State) ->
     State;
-                                                %   case lists:member(domain_type_class(Question), type_domains(State)) of
-                                                %   true -
-                                                %    case {type_domain(State), domain_type_class(Question)} of
-                                                %   {TypeDomain, {TypeDomain, ptr, in}} ->
-                                                %       mdns_node_discovery:advertise(),
-                                                %       State;
-                                                %   _ ->
-                                                %       State
-                                                %    end;
+
 handle_record(_, msg, false, 'query', [_Question], [_Answer], [], [], State) ->
     State;
-                                                %    case {type_domain(State), domain_type_class(Question)} of
-                                                %   {TypeDomain, {TypeDomain, ptr, in}} ->
-                                                %       case lists:member(data(Answer), local_instances(State)) of
-                                                %       true ->
-                                                %           mdns_node_discovery:advertise(),
-                                                %           State;
-                                                %       _ ->
-                                                %           State
-                                                %       end;
-                                                %   _ ->
-                                                %       State
-                                                %    end;
 
 handle_record(_, msg, true, 'query', [], Answers, [], Resources, State) ->
     handle_advertisement(Answers, Resources, State);
 
-handle_record(_, msg, false, 'query', _, _, _, _, State) ->
+handle_record(_, _, _, _, _, _, _, _, State) ->
     State.
 
-%% local_instances(State) ->
-%%     {ok, Names} = net_adm:names(),
-%%     {ok, Hostname} = inet:gethostname(),
-%%     [instance(Node, Hostname, State) || {Node, _} <- Names].
-
-%% instance(Node, Hostname, #state{type = Type, domain = Domain}) ->
-%%     Node ++ "@" ++ Hostname ++ "." ++ Type ++ Domain.
-
-handle_advertisement([Answer | Answers], Resources, #state{%discovered = Discovered,
-                                           domain = Domain,
-                                                %types = Types
-                                           discovered = Discovered
-                                          } = State) ->
+handle_advertisement([Answer | Answers], Resources, #state{
+                                                       domain = Domain,
+                                                       discovered = Discovered
+                                                      } = State) ->
     {TypeDomain, _, _} = TypeDomainRecord = domain_type_class(Answer),
     case lists:member(TypeDomainRecord, type_domains(State))  of
         true ->
@@ -245,53 +236,14 @@ handle_advertisement([Answer | Answers], Resources, #state{%discovered = Discove
             handle_advertisement(Answers, Resources, State)
     end;
 
-%% case {tyape_domain(State), domain_type_class(Answer), ttl(Answer)} of
-%%  {TypeDomain, {TypeDomain, ptr, in}, 0} ->
-%%      Node = node_and_hostname([{type(Resource), data(Resource)} || Resource <- Resources,
-%%                                    domain(Resource) =:= data(Answer)]),
-%%      handle_advertisement(Answers, Resources, State#state{discovered = lists:delete(Node, Discovered)});
-
-%%  {TypeDomain, {TypeDomain, ptr, in}, TTL} when TTL > 0 ->
-%%      Node = node_and_hostname([{type(Resource), data(Resource)} || Resource <- Resources,
-%%                                    domain(Resource) =:= data(Answer)]),
-
-%%      case lists:member(Node, Discovered) of
-%%      false when node() =/= Node ->
-%%          mdns_node_discovery_event:notify_node_advertisement(Node),
-%%          handle_advertisement(Answers, Resources, State#state{discovered = [Node | Discovered]});
-
-%%      _ ->
-%%          handle_advertisement(Answers, Resources, State)
-%%      end;
-%% end;
 handle_advertisement([], _, State) ->
     State.
-
-
-%% node_and_hostname(P) ->
-%%     list_to_atom(node_name(get_value(txt, P)) ++ "@" ++ host_name(get_value(txt, P))).
-
-%% node_name([[$n, $o, $d, $e, $= | Name] | _]) ->
-%%     Name;
-%% node_name([_ | T]) ->
-%%     node_name(T).
-
-%% host_name([[$h, $o, $s, $t, $n, $a, $m, $e, $= | Hostname] | _]) ->
-%%     Hostname;
-%% host_name([_ | T]) ->
-%%     host_name(T).
-
-
-
-%% type_domain(#state{type= Type, domain = Domain}) ->
-%%     Type ++ Domain.
 
 type_domains(#state{types = Types, domain = Domain}) ->
     [{Type ++ Domain, ptr, in} || Type <- Types].
 
 domain_type_class(Resource) ->
     {domain(Resource), type(Resource), class(Resource)}.
-
 
 domain(Resource) ->
     get_value(domain, Resource).
