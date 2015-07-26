@@ -13,4 +13,4 @@
               {contributors,["Peter Morgan","Heinz N. Gies"]},
               {licenses,["MIT"]},
               {links,[{"Github",
-                       "https://github.com/Licenser/erlang-mdns-server"}]}]}.
+                       "https://github.com/Licenser/erlang-mdns-client"}]}]}.
