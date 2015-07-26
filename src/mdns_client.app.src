@@ -1,6 +1,6 @@
 {application,mdns_client,
              [{description,"mDNS service discovery client"},
-              {vsn,"0.1.1"},
+              {vsn,"0.1.2"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {mod,{mdns_client_application,[]}},
