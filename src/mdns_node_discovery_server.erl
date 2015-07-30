@@ -156,25 +156,30 @@ handle_info(tick, #state{discovered=Discovered} = State) ->
 
 
 handle_info({udp, Socket, _, _, Packet}, S1) ->
-    {ok, Record} = inet_dns:decode(Packet),
-    Header = inet_dns:header(inet_dns:msg(Record, header)),
-    Type = inet_dns:record_type(Record),
-    Questions = [inet_dns:dns_query(Query) ||
-                    Query <- inet_dns:msg(Record, qdlist)],
-    Answers = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, anlist)],
-    Authorities = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, nslist)],
-    Resources = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, arlist)],
-    S2 = handle_record(Header,
-                       Type,
-                       get_value(qr, Header),
-                       get_value(opcode, Header),
-                       Questions,
-                       Answers,
-                       Authorities,
-                       Resources,
-                       S1),
-    inet:setopts(Socket, [{active, once}]),
-    {noreply, S2}.
+    case inet_dns:decode(Packet) of
+        {ok, Record} ->
+            Header = inet_dns:header(inet_dns:msg(Record, header)),
+            Type = inet_dns:record_type(Record),
+            Questions = [inet_dns:dns_query(Query) ||
+                            Query <- inet_dns:msg(Record, qdlist)],
+            Answers = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, anlist)],
+            Authorities = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, nslist)],
+            Resources = [inet_dns:rr(RR) || RR <- inet_dns:msg(Record, arlist)],
+            S2 = handle_record(Header,
+                               Type,
+                               get_value(qr, Header),
+                               get_value(opcode, Header),
+                               Questions,
+                               Answers,
+                               Authorities,
+                               Resources,
+                               S1),
+            inet:setopts(Socket, [{active, once}]),
+            {noreply, S2};
+        E ->
+            lager:error("MDNS error: ~p", E),
+            {noreply, S1}
+    end.
 
 terminate(_Reason, #state{socket = Socket}) ->
     gen_udp:close(Socket).
