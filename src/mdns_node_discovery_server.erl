@@ -178,6 +178,7 @@ handle_info({udp, Socket, _, _, Packet}, S1) ->
             {noreply, S2};
         E ->
             lager:error("MDNS error: ~p", [E]),
+            inet:setopts(Socket, [{active, once}]),
             {noreply, S1}
     end.
 
