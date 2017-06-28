@@ -1,6 +1,6 @@
 {application,mdns_client,
              [{description,"mDNS service discovery client"},
-              {vsn,"0.1.8"},
+              {vsn, git},
               {registered,[]},
               {applications,[kernel,stdlib,lager]},
               {mod,{mdns_client_application,[]}},
@@ -10,7 +10,7 @@
                     {domain,".local"},
                     {type,"_erlang._tcp"},
                     {types,["_erlang._tcp"]}]},
-              {contributors,["Peter Morgan","Heinz N. Gies"]},
+              {maintainers,["Peter Morgan","Heinz N. Gies"]},
               {licenses,["MIT"]},
               {links,[{"Github",
                        "https://github.com/Licenser/erlang-mdns-client"}]}]}.
